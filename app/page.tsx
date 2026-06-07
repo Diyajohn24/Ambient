@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 import ModeSwitcher from "../components/ModeSwitcher";
 import Header from "../components/Header";
@@ -22,6 +22,31 @@ export default function Home() {
 
   // NEW STATES
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  useEffect(() => {
+  async function checkAuth() {
+    const token = localStorage.getItem("token");
+
+    if (!token) return;
+
+    const response = await fetch("/api/verify", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ token }),
+    });
+
+    const data = await response.json();
+
+    console.log("VERIFY RESPONSE:", data);
+
+    if (data.valid) {
+      setIsAuthenticated(true);
+    }
+  }
+
+  checkAuth();
+}, []);
   console.log("Authentication state:", isAuthenticated);
   const [authScreen, setAuthScreen] = useState("signin");
 
@@ -43,16 +68,19 @@ export default function Home() {
   // MAIN APP
   return (
     <main
-      className={`min-h-screen px-8 py-6 ${
-        mode === "venting"
+      className={`min-h-screen px-8 py-6 ${mode === "venting"
           ? "bg-slate-800"
           : "bg-[#F4F0FF]"
-      }`}
+        }`}
     >
       <Header
-        mode={mode}
-        setShowChat={setShowChat}
-      />
+  mode={mode}
+  setShowChat={setShowChat}
+  onLogout={() => {
+    localStorage.removeItem("token");
+    setIsAuthenticated(false);
+  }}
+/>
 
       <ModeSwitcher
         mode={mode}

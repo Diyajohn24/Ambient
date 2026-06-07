@@ -1,5 +1,6 @@
 "use client";
-import React, {useState} from "react";
+import { createToken } from "../lib/auth";
+import React, { useState } from "react";
 
 export default function SignIn({ onSignIn, goToCreate }: {
   onSignIn: () => void;
@@ -8,10 +9,35 @@ export default function SignIn({ onSignIn, goToCreate }: {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
-  const handleSignIn = () => {
-    console.log("Sign in with:", { email, password });
-    onSignIn();
-  };
+  const handleSignIn = async () => {
+  try {
+    const response = await fetch("/api/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email,
+        password,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (data.success) {
+      localStorage.setItem("token", data.token);
+
+      console.log("JWT Token:", data.token);
+
+      onSignIn();
+    } else {
+      alert("Invalid email or password");
+    }
+  } catch (error) {
+    console.error(error);
+    alert("Login failed");
+  }
+};
 
   const handleBack = () => {
     goToCreate();
@@ -75,32 +101,32 @@ export default function SignIn({ onSignIn, goToCreate }: {
           Sign in
         </button>
         <p
-  style={{
-    textAlign: "center",
-    color: "white",
-    marginTop: "18px",
-    marginBottom: "8px",
-    fontSize: "14px",
-  }}
->
-  Don’t have an account?
-</p>
+          style={{
+            textAlign: "center",
+            color: "white",
+            marginTop: "18px",
+            marginBottom: "8px",
+            fontSize: "14px",
+          }}
+        >
+          Don’t have an account?
+        </p>
 
-<button
-  onClick={goToCreate}
-  style={{
-    width: "100%",
-    backgroundColor: "transparent",
-    color: "white",
-    border: "1px solid white",
-    borderRadius: "30px",
-    padding: "12px",
-    fontSize: "14px",
-    cursor: "pointer",
-  }}
->
-  Create Account
-</button>
+        <button
+          onClick={goToCreate}
+          style={{
+            width: "100%",
+            backgroundColor: "transparent",
+            color: "white",
+            border: "1px solid white",
+            borderRadius: "30px",
+            padding: "12px",
+            fontSize: "14px",
+            cursor: "pointer",
+          }}
+        >
+          Create Account
+        </button>
       </div>
     </div>
   );
